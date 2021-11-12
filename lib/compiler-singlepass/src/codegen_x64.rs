@@ -330,9 +330,9 @@ impl<'a> FuncGen<'a> {
 
     /// Canonicalizes the floating point value at `input` into `output`.
     fn canonicalize_nan(&mut self, sz: Size, input: Location, output: Location) {
-        let tmp1 = self.machine.acquire_temp_xmm().unwrap();
-        let tmp2 = self.machine.acquire_temp_xmm().unwrap();
-        let tmp3 = self.machine.acquire_temp_xmm().unwrap();
+        let tmp1 = self.machine.acquire_temp_simd().unwrap();
+        let tmp2 = self.machine.acquire_temp_simd().unwrap();
+        let tmp3 = self.machine.acquire_temp_simd().unwrap();
 
         self.emit_relaxed_binop(Assembler::emit_mov, sz, input, Location::SIMD(tmp1));
         let tmpg1 = self.machine.acquire_temp_gpr().unwrap();
@@ -370,9 +370,9 @@ impl<'a> FuncGen<'a> {
         self.emit_relaxed_binop(Assembler::emit_mov, sz, Location::SIMD(tmp1), output);
 
         self.machine.release_temp_gpr(tmpg1);
-        self.machine.release_temp_xmm(tmp3);
-        self.machine.release_temp_xmm(tmp2);
-        self.machine.release_temp_xmm(tmp1);
+        self.machine.release_temp_simd(tmp3);
+        self.machine.release_temp_simd(tmp2);
+        self.machine.release_temp_simd(tmp1);
     }
 
     /// Moves `loc` to a valid location for `div`/`idiv`.
@@ -569,9 +569,9 @@ impl<'a> FuncGen<'a> {
         src2: Location,
         dst: Location,
     ) -> Result<(), CodegenError> {
-        let tmp1 = self.machine.acquire_temp_xmm().unwrap();
-        let tmp2 = self.machine.acquire_temp_xmm().unwrap();
-        let tmp3 = self.machine.acquire_temp_xmm().unwrap();
+        let tmp1 = self.machine.acquire_temp_simd().unwrap();
+        let tmp2 = self.machine.acquire_temp_simd().unwrap();
+        let tmp3 = self.machine.acquire_temp_simd().unwrap();
         let tmpg = self.machine.acquire_temp_gpr().unwrap();
 
         let src1 = match src1 {
@@ -648,9 +648,9 @@ impl<'a> FuncGen<'a> {
         }
 
         self.machine.release_temp_gpr(tmpg);
-        self.machine.release_temp_xmm(tmp3);
-        self.machine.release_temp_xmm(tmp2);
-        self.machine.release_temp_xmm(tmp1);
+        self.machine.release_temp_simd(tmp3);
+        self.machine.release_temp_simd(tmp2);
+        self.machine.release_temp_simd(tmp1);
         Ok(())
     }
 
@@ -988,7 +988,7 @@ impl<'a> FuncGen<'a> {
         }
 
         // Save used XMM registers.
-        let used_xmms = self.machine.get_used_xmms();
+        let used_xmms = self.machine.get_used_simd();
         if used_xmms.len() > 0 {
             self.assembler.emit_sub(
                 Size::S64,
@@ -1443,7 +1443,7 @@ impl<'a> FuncGen<'a> {
         let upper_bound = f32::to_bits(upper_bound);
 
         let tmp = self.machine.acquire_temp_gpr().unwrap();
-        let tmp_x = self.machine.acquire_temp_xmm().unwrap();
+        let tmp_x = self.machine.acquire_temp_simd().unwrap();
 
         // Underflow.
         self.assembler
@@ -1483,7 +1483,7 @@ impl<'a> FuncGen<'a> {
 
         self.assembler.emit_jmp(Condition::None, succeed_label);
 
-        self.machine.release_temp_xmm(tmp_x);
+        self.machine.release_temp_simd(tmp_x);
         self.machine.release_temp_gpr(tmp);
     }
 
@@ -1596,7 +1596,7 @@ impl<'a> FuncGen<'a> {
         let upper_bound = f64::to_bits(upper_bound);
 
         let tmp = self.machine.acquire_temp_gpr().unwrap();
-        let tmp_x = self.machine.acquire_temp_xmm().unwrap();
+        let tmp_x = self.machine.acquire_temp_simd().unwrap();
 
         // Underflow.
         self.assembler
@@ -1636,7 +1636,7 @@ impl<'a> FuncGen<'a> {
 
         self.assembler.emit_jmp(Condition::None, succeed_label);
 
-        self.machine.release_temp_xmm(tmp_x);
+        self.machine.release_temp_simd(tmp_x);
         self.machine.release_temp_gpr(tmp);
     }
 
@@ -2729,8 +2729,8 @@ impl<'a> FuncGen<'a> {
                 } else {
                     let I2O1 { loc_a, loc_b, ret } = self.i2o1_prepare(WpType::F64);
 
-                    let tmp1 = self.machine.acquire_temp_xmm().unwrap();
-                    let tmp2 = self.machine.acquire_temp_xmm().unwrap();
+                    let tmp1 = self.machine.acquire_temp_simd().unwrap();
+                    let tmp2 = self.machine.acquire_temp_simd().unwrap();
                     let tmpg1 = self.machine.acquire_temp_gpr().unwrap();
                     let tmpg2 = self.machine.acquire_temp_gpr().unwrap();
 
@@ -2861,8 +2861,8 @@ impl<'a> FuncGen<'a> {
 
                     self.machine.release_temp_gpr(tmpg2);
                     self.machine.release_temp_gpr(tmpg1);
-                    self.machine.release_temp_xmm(tmp2);
-                    self.machine.release_temp_xmm(tmp1);
+                    self.machine.release_temp_simd(tmp2);
+                    self.machine.release_temp_simd(tmp1);
                 }
             }
             Operator::F32Min => {
@@ -2874,8 +2874,8 @@ impl<'a> FuncGen<'a> {
                 } else {
                     let I2O1 { loc_a, loc_b, ret } = self.i2o1_prepare(WpType::F64);
 
-                    let tmp1 = self.machine.acquire_temp_xmm().unwrap();
-                    let tmp2 = self.machine.acquire_temp_xmm().unwrap();
+                    let tmp1 = self.machine.acquire_temp_simd().unwrap();
+                    let tmp2 = self.machine.acquire_temp_simd().unwrap();
                     let tmpg1 = self.machine.acquire_temp_gpr().unwrap();
                     let tmpg2 = self.machine.acquire_temp_gpr().unwrap();
 
@@ -3015,8 +3015,8 @@ impl<'a> FuncGen<'a> {
 
                     self.machine.release_temp_gpr(tmpg2);
                     self.machine.release_temp_gpr(tmpg1);
-                    self.machine.release_temp_xmm(tmp2);
-                    self.machine.release_temp_xmm(tmp1);
+                    self.machine.release_temp_simd(tmp2);
+                    self.machine.release_temp_simd(tmp1);
                 }
             }
             Operator::F32Eq => {
@@ -3154,7 +3154,7 @@ impl<'a> FuncGen<'a> {
                 self.value_stack.push(ret);
 
                 if self.assembler.arch_has_fneg() {
-                    let tmp = self.machine.acquire_temp_xmm().unwrap();
+                    let tmp = self.machine.acquire_temp_simd().unwrap();
                     self.emit_relaxed_binop(
                         Assembler::emit_mov,
                         Size::S32,
@@ -3168,7 +3168,7 @@ impl<'a> FuncGen<'a> {
                         Location::SIMD(tmp),
                         ret,
                     );
-                    self.machine.release_temp_xmm(tmp);
+                    self.machine.release_temp_simd(tmp);
                 } else {
                     let tmp = self.machine.acquire_temp_gpr().unwrap();
                     self.assembler.emit_mov(Size::S32, loc, Location::GPR(tmp));
@@ -3221,8 +3221,8 @@ impl<'a> FuncGen<'a> {
                 } else {
                     let I2O1 { loc_a, loc_b, ret } = self.i2o1_prepare(WpType::F64);
 
-                    let tmp1 = self.machine.acquire_temp_xmm().unwrap();
-                    let tmp2 = self.machine.acquire_temp_xmm().unwrap();
+                    let tmp1 = self.machine.acquire_temp_simd().unwrap();
+                    let tmp2 = self.machine.acquire_temp_simd().unwrap();
                     let tmpg1 = self.machine.acquire_temp_gpr().unwrap();
                     let tmpg2 = self.machine.acquire_temp_gpr().unwrap();
 
@@ -3353,8 +3353,8 @@ impl<'a> FuncGen<'a> {
 
                     self.machine.release_temp_gpr(tmpg2);
                     self.machine.release_temp_gpr(tmpg1);
-                    self.machine.release_temp_xmm(tmp2);
-                    self.machine.release_temp_xmm(tmp1);
+                    self.machine.release_temp_simd(tmp2);
+                    self.machine.release_temp_simd(tmp1);
                 }
             }
             Operator::F64Min => {
@@ -3367,8 +3367,8 @@ impl<'a> FuncGen<'a> {
                 } else {
                     let I2O1 { loc_a, loc_b, ret } = self.i2o1_prepare(WpType::F64);
 
-                    let tmp1 = self.machine.acquire_temp_xmm().unwrap();
-                    let tmp2 = self.machine.acquire_temp_xmm().unwrap();
+                    let tmp1 = self.machine.acquire_temp_simd().unwrap();
+                    let tmp2 = self.machine.acquire_temp_simd().unwrap();
                     let tmpg1 = self.machine.acquire_temp_gpr().unwrap();
                     let tmpg2 = self.machine.acquire_temp_gpr().unwrap();
 
@@ -3508,8 +3508,8 @@ impl<'a> FuncGen<'a> {
 
                     self.machine.release_temp_gpr(tmpg2);
                     self.machine.release_temp_gpr(tmpg1);
-                    self.machine.release_temp_xmm(tmp2);
-                    self.machine.release_temp_xmm(tmp1);
+                    self.machine.release_temp_simd(tmp2);
+                    self.machine.release_temp_simd(tmp1);
                 }
             }
             Operator::F64Eq => {
@@ -3664,7 +3664,7 @@ impl<'a> FuncGen<'a> {
                 )[0];
                 self.value_stack.push(ret);
                 if self.assembler.arch_has_fneg() {
-                    let tmp = self.machine.acquire_temp_xmm().unwrap();
+                    let tmp = self.machine.acquire_temp_simd().unwrap();
                     self.emit_relaxed_binop(
                         Assembler::emit_mov,
                         Size::S64,
@@ -3678,7 +3678,7 @@ impl<'a> FuncGen<'a> {
                         Location::SIMD(tmp),
                         ret,
                     );
-                    self.machine.release_temp_xmm(tmp);
+                    self.machine.release_temp_simd(tmp);
                 } else {
                     let tmp = self.machine.acquire_temp_gpr().unwrap();
                     self.assembler.emit_mov(Size::S64, loc, Location::GPR(tmp));
@@ -3785,7 +3785,7 @@ impl<'a> FuncGen<'a> {
 
                 if self.assembler.arch_has_itruncf() {
                     let tmp_out = self.machine.acquire_temp_gpr().unwrap();
-                    let tmp_in = self.machine.acquire_temp_xmm().unwrap();
+                    let tmp_in = self.machine.acquire_temp_simd().unwrap();
                     self.emit_relaxed_binop(
                         Assembler::emit_mov,
                         Size::S32,
@@ -3799,11 +3799,11 @@ impl<'a> FuncGen<'a> {
                         Location::GPR(tmp_out),
                         ret,
                     );
-                    self.machine.release_temp_xmm(tmp_in);
+                    self.machine.release_temp_simd(tmp_in);
                     self.machine.release_temp_gpr(tmp_out);
                 } else {
                     let tmp_out = self.machine.acquire_temp_gpr().unwrap();
-                    let tmp_in = self.machine.acquire_temp_xmm().unwrap();
+                    let tmp_in = self.machine.acquire_temp_simd().unwrap();
                     self.emit_relaxed_binop(
                         Assembler::emit_mov,
                         Size::S32,
@@ -3817,7 +3817,7 @@ impl<'a> FuncGen<'a> {
                     self.assembler
                         .emit_mov(Size::S32, Location::GPR(tmp_out), ret);
 
-                    self.machine.release_temp_xmm(tmp_in);
+                    self.machine.release_temp_simd(tmp_in);
                     self.machine.release_temp_gpr(tmp_out);
                 }
             }
@@ -3833,7 +3833,7 @@ impl<'a> FuncGen<'a> {
                 self.fp_stack.pop1()?;
 
                 let tmp_out = self.machine.acquire_temp_gpr().unwrap();
-                let tmp_in = self.machine.acquire_temp_xmm().unwrap();
+                let tmp_in = self.machine.acquire_temp_simd().unwrap();
                 self.emit_relaxed_binop(
                     Assembler::emit_mov,
                     Size::S32,
@@ -3871,7 +3871,7 @@ impl<'a> FuncGen<'a> {
 
                 self.assembler
                     .emit_mov(Size::S32, Location::GPR(tmp_out), ret);
-                self.machine.release_temp_xmm(tmp_in);
+                self.machine.release_temp_simd(tmp_in);
                 self.machine.release_temp_gpr(tmp_out);
             }
 
@@ -3887,7 +3887,7 @@ impl<'a> FuncGen<'a> {
 
                 if self.assembler.arch_has_itruncf() {
                     let tmp_out = self.machine.acquire_temp_gpr().unwrap();
-                    let tmp_in = self.machine.acquire_temp_xmm().unwrap();
+                    let tmp_in = self.machine.acquire_temp_simd().unwrap();
                     self.emit_relaxed_binop(
                         Assembler::emit_mov,
                         Size::S32,
@@ -3901,11 +3901,11 @@ impl<'a> FuncGen<'a> {
                         Location::GPR(tmp_out),
                         ret,
                     );
-                    self.machine.release_temp_xmm(tmp_in);
+                    self.machine.release_temp_simd(tmp_in);
                     self.machine.release_temp_gpr(tmp_out);
                 } else {
                     let tmp_out = self.machine.acquire_temp_gpr().unwrap();
-                    let tmp_in = self.machine.acquire_temp_xmm().unwrap();
+                    let tmp_in = self.machine.acquire_temp_simd().unwrap();
 
                     self.emit_relaxed_binop(
                         Assembler::emit_mov,
@@ -3920,7 +3920,7 @@ impl<'a> FuncGen<'a> {
                     self.assembler
                         .emit_mov(Size::S32, Location::GPR(tmp_out), ret);
 
-                    self.machine.release_temp_xmm(tmp_in);
+                    self.machine.release_temp_simd(tmp_in);
                     self.machine.release_temp_gpr(tmp_out);
                 }
             }
@@ -3935,7 +3935,7 @@ impl<'a> FuncGen<'a> {
                 self.fp_stack.pop1()?;
 
                 let tmp_out = self.machine.acquire_temp_gpr().unwrap();
-                let tmp_in = self.machine.acquire_temp_xmm().unwrap();
+                let tmp_in = self.machine.acquire_temp_simd().unwrap();
 
                 self.emit_relaxed_binop(
                     Assembler::emit_mov,
@@ -3980,7 +3980,7 @@ impl<'a> FuncGen<'a> {
 
                 self.assembler
                     .emit_mov(Size::S32, Location::GPR(tmp_out), ret);
-                self.machine.release_temp_xmm(tmp_in);
+                self.machine.release_temp_simd(tmp_in);
                 self.machine.release_temp_gpr(tmp_out);
             }
 
@@ -3996,7 +3996,7 @@ impl<'a> FuncGen<'a> {
 
                 if self.assembler.arch_has_itruncf() {
                     let tmp_out = self.machine.acquire_temp_gpr().unwrap();
-                    let tmp_in = self.machine.acquire_temp_xmm().unwrap();
+                    let tmp_in = self.machine.acquire_temp_simd().unwrap();
                     self.emit_relaxed_binop(
                         Assembler::emit_mov,
                         Size::S32,
@@ -4010,11 +4010,11 @@ impl<'a> FuncGen<'a> {
                         Location::GPR(tmp_out),
                         ret,
                     );
-                    self.machine.release_temp_xmm(tmp_in);
+                    self.machine.release_temp_simd(tmp_in);
                     self.machine.release_temp_gpr(tmp_out);
                 } else {
                     let tmp_out = self.machine.acquire_temp_gpr().unwrap();
-                    let tmp_in = self.machine.acquire_temp_xmm().unwrap();
+                    let tmp_in = self.machine.acquire_temp_simd().unwrap();
 
                     self.emit_relaxed_binop(
                         Assembler::emit_mov,
@@ -4028,7 +4028,7 @@ impl<'a> FuncGen<'a> {
                     self.assembler
                         .emit_mov(Size::S64, Location::GPR(tmp_out), ret);
 
-                    self.machine.release_temp_xmm(tmp_in);
+                    self.machine.release_temp_simd(tmp_in);
                     self.machine.release_temp_gpr(tmp_out);
                 }
             }
@@ -4044,7 +4044,7 @@ impl<'a> FuncGen<'a> {
                 self.fp_stack.pop1()?;
 
                 let tmp_out = self.machine.acquire_temp_gpr().unwrap();
-                let tmp_in = self.machine.acquire_temp_xmm().unwrap();
+                let tmp_in = self.machine.acquire_temp_simd().unwrap();
 
                 self.emit_relaxed_binop(
                     Assembler::emit_mov,
@@ -4089,7 +4089,7 @@ impl<'a> FuncGen<'a> {
 
                 self.assembler
                     .emit_mov(Size::S64, Location::GPR(tmp_out), ret);
-                self.machine.release_temp_xmm(tmp_in);
+                self.machine.release_temp_simd(tmp_in);
                 self.machine.release_temp_gpr(tmp_out);
             }
 
@@ -4105,7 +4105,7 @@ impl<'a> FuncGen<'a> {
 
                 if self.assembler.arch_has_itruncf() {
                     let tmp_out = self.machine.acquire_temp_gpr().unwrap();
-                    let tmp_in = self.machine.acquire_temp_xmm().unwrap();
+                    let tmp_in = self.machine.acquire_temp_simd().unwrap();
                     self.emit_relaxed_binop(
                         Assembler::emit_mov,
                         Size::S32,
@@ -4119,11 +4119,11 @@ impl<'a> FuncGen<'a> {
                         Location::GPR(tmp_out),
                         ret,
                     );
-                    self.machine.release_temp_xmm(tmp_in);
+                    self.machine.release_temp_simd(tmp_in);
                     self.machine.release_temp_gpr(tmp_out);
                 } else {
                     let tmp_out = self.machine.acquire_temp_gpr().unwrap();
-                    let tmp_in = self.machine.acquire_temp_xmm().unwrap(); // xmm2
+                    let tmp_in = self.machine.acquire_temp_simd().unwrap(); // xmm2
 
                     self.emit_relaxed_binop(
                         Assembler::emit_mov,
@@ -4134,8 +4134,8 @@ impl<'a> FuncGen<'a> {
                     self.emit_f32_int_conv_check_trap(tmp_in, GEF32_LT_U64_MIN, LEF32_GT_U64_MAX);
 
                     let tmp = self.machine.acquire_temp_gpr().unwrap(); // r15
-                    let tmp_x1 = self.machine.acquire_temp_xmm().unwrap(); // xmm1
-                    let tmp_x2 = self.machine.acquire_temp_xmm().unwrap(); // xmm3
+                    let tmp_x1 = self.machine.acquire_temp_simd().unwrap(); // xmm1
+                    let tmp_x2 = self.machine.acquire_temp_simd().unwrap(); // xmm3
 
                     self.assembler.emit_mov(
                         Size::S32,
@@ -4168,10 +4168,10 @@ impl<'a> FuncGen<'a> {
                     self.assembler
                         .emit_mov(Size::S64, Location::GPR(tmp_out), ret);
 
-                    self.machine.release_temp_xmm(tmp_x2);
-                    self.machine.release_temp_xmm(tmp_x1);
+                    self.machine.release_temp_simd(tmp_x2);
+                    self.machine.release_temp_simd(tmp_x1);
                     self.machine.release_temp_gpr(tmp);
-                    self.machine.release_temp_xmm(tmp_in);
+                    self.machine.release_temp_simd(tmp_in);
                     self.machine.release_temp_gpr(tmp_out);
                 }
             }
@@ -4186,7 +4186,7 @@ impl<'a> FuncGen<'a> {
                 self.fp_stack.pop1()?;
 
                 let tmp_out = self.machine.acquire_temp_gpr().unwrap();
-                let tmp_in = self.machine.acquire_temp_xmm().unwrap();
+                let tmp_in = self.machine.acquire_temp_simd().unwrap();
 
                 self.emit_relaxed_binop(
                     Assembler::emit_mov,
@@ -4218,8 +4218,8 @@ impl<'a> FuncGen<'a> {
                             this.assembler.arch_emit_i64_trunc_uf32(tmp_in, tmp_out);
                         } else {
                             let tmp = this.machine.acquire_temp_gpr().unwrap();
-                            let tmp_x1 = this.machine.acquire_temp_xmm().unwrap();
-                            let tmp_x2 = this.machine.acquire_temp_xmm().unwrap();
+                            let tmp_x1 = this.machine.acquire_temp_simd().unwrap();
+                            let tmp_x2 = this.machine.acquire_temp_simd().unwrap();
 
                             this.assembler.emit_mov(
                                 Size::S32,
@@ -4256,8 +4256,8 @@ impl<'a> FuncGen<'a> {
                                 .emit_ucomiss(XMMOrMemory::XMM(tmp_x1), tmp_x2);
                             this.assembler.emit_cmovae_gpr_64(tmp, tmp_out);
 
-                            this.machine.release_temp_xmm(tmp_x2);
-                            this.machine.release_temp_xmm(tmp_x1);
+                            this.machine.release_temp_simd(tmp_x2);
+                            this.machine.release_temp_simd(tmp_x1);
                             this.machine.release_temp_gpr(tmp);
                         }
                     },
@@ -4265,7 +4265,7 @@ impl<'a> FuncGen<'a> {
 
                 self.assembler
                     .emit_mov(Size::S64, Location::GPR(tmp_out), ret);
-                self.machine.release_temp_xmm(tmp_in);
+                self.machine.release_temp_simd(tmp_in);
                 self.machine.release_temp_gpr(tmp_out);
             }
 
@@ -4281,7 +4281,7 @@ impl<'a> FuncGen<'a> {
 
                 if self.assembler.arch_has_itruncf() {
                     let tmp_out = self.machine.acquire_temp_gpr().unwrap();
-                    let tmp_in = self.machine.acquire_temp_xmm().unwrap();
+                    let tmp_in = self.machine.acquire_temp_simd().unwrap();
                     self.emit_relaxed_binop(
                         Assembler::emit_mov,
                         Size::S64,
@@ -4295,11 +4295,11 @@ impl<'a> FuncGen<'a> {
                         Location::GPR(tmp_out),
                         ret,
                     );
-                    self.machine.release_temp_xmm(tmp_in);
+                    self.machine.release_temp_simd(tmp_in);
                     self.machine.release_temp_gpr(tmp_out);
                 } else {
                     let tmp_out = self.machine.acquire_temp_gpr().unwrap();
-                    let tmp_in = self.machine.acquire_temp_xmm().unwrap();
+                    let tmp_in = self.machine.acquire_temp_simd().unwrap();
 
                     self.emit_relaxed_binop(
                         Assembler::emit_mov,
@@ -4314,7 +4314,7 @@ impl<'a> FuncGen<'a> {
                     self.assembler
                         .emit_mov(Size::S32, Location::GPR(tmp_out), ret);
 
-                    self.machine.release_temp_xmm(tmp_in);
+                    self.machine.release_temp_simd(tmp_in);
                     self.machine.release_temp_gpr(tmp_out);
                 }
             }
@@ -4330,7 +4330,7 @@ impl<'a> FuncGen<'a> {
                 self.fp_stack.pop1()?;
 
                 let tmp_out = self.machine.acquire_temp_gpr().unwrap();
-                let tmp_in = self.machine.acquire_temp_xmm().unwrap();
+                let tmp_in = self.machine.acquire_temp_simd().unwrap();
 
                 self.emit_relaxed_binop(
                     Assembler::emit_mov,
@@ -4369,7 +4369,7 @@ impl<'a> FuncGen<'a> {
 
                 self.assembler
                     .emit_mov(Size::S32, Location::GPR(tmp_out), ret);
-                self.machine.release_temp_xmm(tmp_in);
+                self.machine.release_temp_simd(tmp_in);
                 self.machine.release_temp_gpr(tmp_out);
             }
 
@@ -4385,7 +4385,7 @@ impl<'a> FuncGen<'a> {
 
                 if self.assembler.arch_has_itruncf() {
                     let tmp_out = self.machine.acquire_temp_gpr().unwrap();
-                    let tmp_in = self.machine.acquire_temp_xmm().unwrap();
+                    let tmp_in = self.machine.acquire_temp_simd().unwrap();
                     self.emit_relaxed_binop(
                         Assembler::emit_mov,
                         Size::S64,
@@ -4399,11 +4399,11 @@ impl<'a> FuncGen<'a> {
                         Location::GPR(tmp_out),
                         ret,
                     );
-                    self.machine.release_temp_xmm(tmp_in);
+                    self.machine.release_temp_simd(tmp_in);
                     self.machine.release_temp_gpr(tmp_out);
                 } else {
                     let tmp_out = self.machine.acquire_temp_gpr().unwrap();
-                    let tmp_in = self.machine.acquire_temp_xmm().unwrap();
+                    let tmp_in = self.machine.acquire_temp_simd().unwrap();
 
                     let real_in = match loc {
                         Location::Imm32(_) | Location::Imm64(_) => {
@@ -4431,7 +4431,7 @@ impl<'a> FuncGen<'a> {
                     self.assembler
                         .emit_mov(Size::S32, Location::GPR(tmp_out), ret);
 
-                    self.machine.release_temp_xmm(tmp_in);
+                    self.machine.release_temp_simd(tmp_in);
                     self.machine.release_temp_gpr(tmp_out);
                 }
             }
@@ -4447,7 +4447,7 @@ impl<'a> FuncGen<'a> {
                 self.fp_stack.pop1()?;
 
                 let tmp_out = self.machine.acquire_temp_gpr().unwrap();
-                let tmp_in = self.machine.acquire_temp_xmm().unwrap();
+                let tmp_in = self.machine.acquire_temp_simd().unwrap();
 
                 let real_in = match loc {
                     Location::Imm32(_) | Location::Imm64(_) => {
@@ -4505,7 +4505,7 @@ impl<'a> FuncGen<'a> {
 
                 self.assembler
                     .emit_mov(Size::S32, Location::GPR(tmp_out), ret);
-                self.machine.release_temp_xmm(tmp_in);
+                self.machine.release_temp_simd(tmp_in);
                 self.machine.release_temp_gpr(tmp_out);
             }
 
@@ -4521,7 +4521,7 @@ impl<'a> FuncGen<'a> {
 
                 if self.assembler.arch_has_itruncf() {
                     let tmp_out = self.machine.acquire_temp_gpr().unwrap();
-                    let tmp_in = self.machine.acquire_temp_xmm().unwrap();
+                    let tmp_in = self.machine.acquire_temp_simd().unwrap();
                     self.emit_relaxed_binop(
                         Assembler::emit_mov,
                         Size::S64,
@@ -4535,11 +4535,11 @@ impl<'a> FuncGen<'a> {
                         Location::GPR(tmp_out),
                         ret,
                     );
-                    self.machine.release_temp_xmm(tmp_in);
+                    self.machine.release_temp_simd(tmp_in);
                     self.machine.release_temp_gpr(tmp_out);
                 } else {
                     let tmp_out = self.machine.acquire_temp_gpr().unwrap();
-                    let tmp_in = self.machine.acquire_temp_xmm().unwrap();
+                    let tmp_in = self.machine.acquire_temp_simd().unwrap();
 
                     self.emit_relaxed_binop(
                         Assembler::emit_mov,
@@ -4554,7 +4554,7 @@ impl<'a> FuncGen<'a> {
                     self.assembler
                         .emit_mov(Size::S64, Location::GPR(tmp_out), ret);
 
-                    self.machine.release_temp_xmm(tmp_in);
+                    self.machine.release_temp_simd(tmp_in);
                     self.machine.release_temp_gpr(tmp_out);
                 }
             }
@@ -4570,7 +4570,7 @@ impl<'a> FuncGen<'a> {
                 self.fp_stack.pop1()?;
 
                 let tmp_out = self.machine.acquire_temp_gpr().unwrap();
-                let tmp_in = self.machine.acquire_temp_xmm().unwrap();
+                let tmp_in = self.machine.acquire_temp_simd().unwrap();
 
                 self.emit_relaxed_binop(
                     Assembler::emit_mov,
@@ -4615,7 +4615,7 @@ impl<'a> FuncGen<'a> {
 
                 self.assembler
                     .emit_mov(Size::S64, Location::GPR(tmp_out), ret);
-                self.machine.release_temp_xmm(tmp_in);
+                self.machine.release_temp_simd(tmp_in);
                 self.machine.release_temp_gpr(tmp_out);
             }
 
@@ -4631,7 +4631,7 @@ impl<'a> FuncGen<'a> {
 
                 if self.assembler.arch_has_itruncf() {
                     let tmp_out = self.machine.acquire_temp_gpr().unwrap();
-                    let tmp_in = self.machine.acquire_temp_xmm().unwrap();
+                    let tmp_in = self.machine.acquire_temp_simd().unwrap();
                     self.emit_relaxed_binop(
                         Assembler::emit_mov,
                         Size::S64,
@@ -4645,11 +4645,11 @@ impl<'a> FuncGen<'a> {
                         Location::GPR(tmp_out),
                         ret,
                     );
-                    self.machine.release_temp_xmm(tmp_in);
+                    self.machine.release_temp_simd(tmp_in);
                     self.machine.release_temp_gpr(tmp_out);
                 } else {
                     let tmp_out = self.machine.acquire_temp_gpr().unwrap();
-                    let tmp_in = self.machine.acquire_temp_xmm().unwrap(); // xmm2
+                    let tmp_in = self.machine.acquire_temp_simd().unwrap(); // xmm2
 
                     self.emit_relaxed_binop(
                         Assembler::emit_mov,
@@ -4660,8 +4660,8 @@ impl<'a> FuncGen<'a> {
                     self.emit_f64_int_conv_check_trap(tmp_in, GEF64_LT_U64_MIN, LEF64_GT_U64_MAX);
 
                     let tmp = self.machine.acquire_temp_gpr().unwrap(); // r15
-                    let tmp_x1 = self.machine.acquire_temp_xmm().unwrap(); // xmm1
-                    let tmp_x2 = self.machine.acquire_temp_xmm().unwrap(); // xmm3
+                    let tmp_x1 = self.machine.acquire_temp_simd().unwrap(); // xmm1
+                    let tmp_x2 = self.machine.acquire_temp_simd().unwrap(); // xmm3
 
                     self.assembler.emit_mov(
                         Size::S64,
@@ -4694,10 +4694,10 @@ impl<'a> FuncGen<'a> {
                     self.assembler
                         .emit_mov(Size::S64, Location::GPR(tmp_out), ret);
 
-                    self.machine.release_temp_xmm(tmp_x2);
-                    self.machine.release_temp_xmm(tmp_x1);
+                    self.machine.release_temp_simd(tmp_x2);
+                    self.machine.release_temp_simd(tmp_x1);
                     self.machine.release_temp_gpr(tmp);
-                    self.machine.release_temp_xmm(tmp_in);
+                    self.machine.release_temp_simd(tmp_in);
                     self.machine.release_temp_gpr(tmp_out);
                 }
             }
@@ -4713,7 +4713,7 @@ impl<'a> FuncGen<'a> {
                 self.fp_stack.pop1()?;
 
                 let tmp_out = self.machine.acquire_temp_gpr().unwrap();
-                let tmp_in = self.machine.acquire_temp_xmm().unwrap();
+                let tmp_in = self.machine.acquire_temp_simd().unwrap();
 
                 self.emit_relaxed_binop(
                     Assembler::emit_mov,
@@ -4745,8 +4745,8 @@ impl<'a> FuncGen<'a> {
                             this.assembler.arch_emit_i64_trunc_uf64(tmp_in, tmp_out);
                         } else {
                             let tmp = this.machine.acquire_temp_gpr().unwrap();
-                            let tmp_x1 = this.machine.acquire_temp_xmm().unwrap();
-                            let tmp_x2 = this.machine.acquire_temp_xmm().unwrap();
+                            let tmp_x1 = this.machine.acquire_temp_simd().unwrap();
+                            let tmp_x2 = this.machine.acquire_temp_simd().unwrap();
 
                             this.assembler.emit_mov(
                                 Size::S64,
@@ -4783,8 +4783,8 @@ impl<'a> FuncGen<'a> {
                                 .emit_ucomisd(XMMOrMemory::XMM(tmp_x1), tmp_x2);
                             this.assembler.emit_cmovae_gpr_64(tmp, tmp_out);
 
-                            this.machine.release_temp_xmm(tmp_x2);
-                            this.machine.release_temp_xmm(tmp_x1);
+                            this.machine.release_temp_simd(tmp_x2);
+                            this.machine.release_temp_simd(tmp_x1);
                             this.machine.release_temp_gpr(tmp);
                         }
                     },
@@ -4792,7 +4792,7 @@ impl<'a> FuncGen<'a> {
 
                 self.assembler
                     .emit_mov(Size::S64, Location::GPR(tmp_out), ret);
-                self.machine.release_temp_xmm(tmp_in);
+                self.machine.release_temp_simd(tmp_in);
                 self.machine.release_temp_gpr(tmp_out);
             }
 
@@ -4808,7 +4808,7 @@ impl<'a> FuncGen<'a> {
                     .push(FloatValue::new(self.value_stack.len() - 1)); // Converting i32 to f32 never results in NaN.
 
                 if self.assembler.arch_has_fconverti() {
-                    let tmp_out = self.machine.acquire_temp_xmm().unwrap();
+                    let tmp_out = self.machine.acquire_temp_simd().unwrap();
                     let tmp_in = self.machine.acquire_temp_gpr().unwrap();
                     self.emit_relaxed_binop(
                         Assembler::emit_mov,
@@ -4824,9 +4824,9 @@ impl<'a> FuncGen<'a> {
                         ret,
                     );
                     self.machine.release_temp_gpr(tmp_in);
-                    self.machine.release_temp_xmm(tmp_out);
+                    self.machine.release_temp_simd(tmp_out);
                 } else {
-                    let tmp_out = self.machine.acquire_temp_xmm().unwrap();
+                    let tmp_out = self.machine.acquire_temp_simd().unwrap();
                     let tmp_in = self.machine.acquire_temp_gpr().unwrap();
 
                     self.assembler
@@ -4837,7 +4837,7 @@ impl<'a> FuncGen<'a> {
                         .emit_mov(Size::S32, Location::SIMD(tmp_out), ret);
 
                     self.machine.release_temp_gpr(tmp_in);
-                    self.machine.release_temp_xmm(tmp_out);
+                    self.machine.release_temp_simd(tmp_out);
                 }
             }
             Operator::F32ConvertI32U => {
@@ -4852,7 +4852,7 @@ impl<'a> FuncGen<'a> {
                     .push(FloatValue::new(self.value_stack.len() - 1)); // Converting i32 to f32 never results in NaN.
 
                 if self.assembler.arch_has_fconverti() {
-                    let tmp_out = self.machine.acquire_temp_xmm().unwrap();
+                    let tmp_out = self.machine.acquire_temp_simd().unwrap();
                     let tmp_in = self.machine.acquire_temp_gpr().unwrap();
                     self.emit_relaxed_binop(
                         Assembler::emit_mov,
@@ -4868,9 +4868,9 @@ impl<'a> FuncGen<'a> {
                         ret,
                     );
                     self.machine.release_temp_gpr(tmp_in);
-                    self.machine.release_temp_xmm(tmp_out);
+                    self.machine.release_temp_simd(tmp_out);
                 } else {
-                    let tmp_out = self.machine.acquire_temp_xmm().unwrap();
+                    let tmp_out = self.machine.acquire_temp_simd().unwrap();
                     let tmp_in = self.machine.acquire_temp_gpr().unwrap();
 
                     self.assembler
@@ -4881,7 +4881,7 @@ impl<'a> FuncGen<'a> {
                         .emit_mov(Size::S32, Location::SIMD(tmp_out), ret);
 
                     self.machine.release_temp_gpr(tmp_in);
-                    self.machine.release_temp_xmm(tmp_out);
+                    self.machine.release_temp_simd(tmp_out);
                 }
             }
             Operator::F32ConvertI64S => {
@@ -4896,7 +4896,7 @@ impl<'a> FuncGen<'a> {
                     .push(FloatValue::new(self.value_stack.len() - 1)); // Converting i64 to f32 never results in NaN.
 
                 if self.assembler.arch_has_fconverti() {
-                    let tmp_out = self.machine.acquire_temp_xmm().unwrap();
+                    let tmp_out = self.machine.acquire_temp_simd().unwrap();
                     let tmp_in = self.machine.acquire_temp_gpr().unwrap();
                     self.emit_relaxed_binop(
                         Assembler::emit_mov,
@@ -4912,9 +4912,9 @@ impl<'a> FuncGen<'a> {
                         ret,
                     );
                     self.machine.release_temp_gpr(tmp_in);
-                    self.machine.release_temp_xmm(tmp_out);
+                    self.machine.release_temp_simd(tmp_out);
                 } else {
-                    let tmp_out = self.machine.acquire_temp_xmm().unwrap();
+                    let tmp_out = self.machine.acquire_temp_simd().unwrap();
                     let tmp_in = self.machine.acquire_temp_gpr().unwrap();
 
                     self.assembler
@@ -4925,7 +4925,7 @@ impl<'a> FuncGen<'a> {
                         .emit_mov(Size::S32, Location::SIMD(tmp_out), ret);
 
                     self.machine.release_temp_gpr(tmp_in);
-                    self.machine.release_temp_xmm(tmp_out);
+                    self.machine.release_temp_simd(tmp_out);
                 }
             }
             Operator::F32ConvertI64U => {
@@ -4940,7 +4940,7 @@ impl<'a> FuncGen<'a> {
                     .push(FloatValue::new(self.value_stack.len() - 1)); // Converting i64 to f32 never results in NaN.
 
                 if self.assembler.arch_has_fconverti() {
-                    let tmp_out = self.machine.acquire_temp_xmm().unwrap();
+                    let tmp_out = self.machine.acquire_temp_simd().unwrap();
                     let tmp_in = self.machine.acquire_temp_gpr().unwrap();
                     self.emit_relaxed_binop(
                         Assembler::emit_mov,
@@ -4956,9 +4956,9 @@ impl<'a> FuncGen<'a> {
                         ret,
                     );
                     self.machine.release_temp_gpr(tmp_in);
-                    self.machine.release_temp_xmm(tmp_out);
+                    self.machine.release_temp_simd(tmp_out);
                 } else {
-                    let tmp_out = self.machine.acquire_temp_xmm().unwrap();
+                    let tmp_out = self.machine.acquire_temp_simd().unwrap();
                     let tmp_in = self.machine.acquire_temp_gpr().unwrap();
                     let tmp = self.machine.acquire_temp_gpr().unwrap();
 
@@ -4991,7 +4991,7 @@ impl<'a> FuncGen<'a> {
 
                     self.machine.release_temp_gpr(tmp);
                     self.machine.release_temp_gpr(tmp_in);
-                    self.machine.release_temp_xmm(tmp_out);
+                    self.machine.release_temp_simd(tmp_out);
                 }
             }
 
@@ -5007,7 +5007,7 @@ impl<'a> FuncGen<'a> {
                     .push(FloatValue::new(self.value_stack.len() - 1)); // Converting i32 to f64 never results in NaN.
 
                 if self.assembler.arch_has_fconverti() {
-                    let tmp_out = self.machine.acquire_temp_xmm().unwrap();
+                    let tmp_out = self.machine.acquire_temp_simd().unwrap();
                     let tmp_in = self.machine.acquire_temp_gpr().unwrap();
                     self.emit_relaxed_binop(
                         Assembler::emit_mov,
@@ -5023,9 +5023,9 @@ impl<'a> FuncGen<'a> {
                         ret,
                     );
                     self.machine.release_temp_gpr(tmp_in);
-                    self.machine.release_temp_xmm(tmp_out);
+                    self.machine.release_temp_simd(tmp_out);
                 } else {
-                    let tmp_out = self.machine.acquire_temp_xmm().unwrap();
+                    let tmp_out = self.machine.acquire_temp_simd().unwrap();
                     let tmp_in = self.machine.acquire_temp_gpr().unwrap();
 
                     self.assembler
@@ -5036,7 +5036,7 @@ impl<'a> FuncGen<'a> {
                         .emit_mov(Size::S64, Location::SIMD(tmp_out), ret);
 
                     self.machine.release_temp_gpr(tmp_in);
-                    self.machine.release_temp_xmm(tmp_out);
+                    self.machine.release_temp_simd(tmp_out);
                 }
             }
             Operator::F64ConvertI32U => {
@@ -5051,7 +5051,7 @@ impl<'a> FuncGen<'a> {
                     .push(FloatValue::new(self.value_stack.len() - 1)); // Converting i32 to f64 never results in NaN.
 
                 if self.assembler.arch_has_fconverti() {
-                    let tmp_out = self.machine.acquire_temp_xmm().unwrap();
+                    let tmp_out = self.machine.acquire_temp_simd().unwrap();
                     let tmp_in = self.machine.acquire_temp_gpr().unwrap();
                     self.emit_relaxed_binop(
                         Assembler::emit_mov,
@@ -5067,9 +5067,9 @@ impl<'a> FuncGen<'a> {
                         ret,
                     );
                     self.machine.release_temp_gpr(tmp_in);
-                    self.machine.release_temp_xmm(tmp_out);
+                    self.machine.release_temp_simd(tmp_out);
                 } else {
-                    let tmp_out = self.machine.acquire_temp_xmm().unwrap();
+                    let tmp_out = self.machine.acquire_temp_simd().unwrap();
                     let tmp_in = self.machine.acquire_temp_gpr().unwrap();
 
                     self.assembler
@@ -5080,7 +5080,7 @@ impl<'a> FuncGen<'a> {
                         .emit_mov(Size::S64, Location::SIMD(tmp_out), ret);
 
                     self.machine.release_temp_gpr(tmp_in);
-                    self.machine.release_temp_xmm(tmp_out);
+                    self.machine.release_temp_simd(tmp_out);
                 }
             }
             Operator::F64ConvertI64S => {
@@ -5095,7 +5095,7 @@ impl<'a> FuncGen<'a> {
                     .push(FloatValue::new(self.value_stack.len() - 1)); // Converting i64 to f64 never results in NaN.
 
                 if self.assembler.arch_has_fconverti() {
-                    let tmp_out = self.machine.acquire_temp_xmm().unwrap();
+                    let tmp_out = self.machine.acquire_temp_simd().unwrap();
                     let tmp_in = self.machine.acquire_temp_gpr().unwrap();
                     self.emit_relaxed_binop(
                         Assembler::emit_mov,
@@ -5111,9 +5111,9 @@ impl<'a> FuncGen<'a> {
                         ret,
                     );
                     self.machine.release_temp_gpr(tmp_in);
-                    self.machine.release_temp_xmm(tmp_out);
+                    self.machine.release_temp_simd(tmp_out);
                 } else {
-                    let tmp_out = self.machine.acquire_temp_xmm().unwrap();
+                    let tmp_out = self.machine.acquire_temp_simd().unwrap();
                     let tmp_in = self.machine.acquire_temp_gpr().unwrap();
 
                     self.assembler
@@ -5124,7 +5124,7 @@ impl<'a> FuncGen<'a> {
                         .emit_mov(Size::S64, Location::SIMD(tmp_out), ret);
 
                     self.machine.release_temp_gpr(tmp_in);
-                    self.machine.release_temp_xmm(tmp_out);
+                    self.machine.release_temp_simd(tmp_out);
                 }
             }
             Operator::F64ConvertI64U => {
@@ -5139,7 +5139,7 @@ impl<'a> FuncGen<'a> {
                     .push(FloatValue::new(self.value_stack.len() - 1)); // Converting i64 to f64 never results in NaN.
 
                 if self.assembler.arch_has_fconverti() {
-                    let tmp_out = self.machine.acquire_temp_xmm().unwrap();
+                    let tmp_out = self.machine.acquire_temp_simd().unwrap();
                     let tmp_in = self.machine.acquire_temp_gpr().unwrap();
                     self.emit_relaxed_binop(
                         Assembler::emit_mov,
@@ -5155,9 +5155,9 @@ impl<'a> FuncGen<'a> {
                         ret,
                     );
                     self.machine.release_temp_gpr(tmp_in);
-                    self.machine.release_temp_xmm(tmp_out);
+                    self.machine.release_temp_simd(tmp_out);
                 } else {
-                    let tmp_out = self.machine.acquire_temp_xmm().unwrap();
+                    let tmp_out = self.machine.acquire_temp_simd().unwrap();
                     let tmp_in = self.machine.acquire_temp_gpr().unwrap();
                     let tmp = self.machine.acquire_temp_gpr().unwrap();
 
@@ -5190,7 +5190,7 @@ impl<'a> FuncGen<'a> {
 
                     self.machine.release_temp_gpr(tmp);
                     self.machine.release_temp_gpr(tmp_in);
-                    self.machine.release_temp_xmm(tmp_out);
+                    self.machine.release_temp_simd(tmp_out);
                 }
             }
 
