@@ -35,7 +35,7 @@ compile_error!(
 
 #[macro_use]
 mod macros;
-mod ptr;
+pub mod ptr;
 mod state;
 mod syscalls;
 mod utils;
@@ -138,10 +138,7 @@ impl WasiEnv {
             .expect("Memory should be set on `WasiEnv` first")
     }
 
-    pub(crate) fn get_memory_and_wasi_state(
-        &self,
-        _mem_index: u32,
-    ) -> (&Memory, MutexGuard<WasiState>) {
+    pub fn get_memory_and_wasi_state(&self, _mem_index: u32) -> (&Memory, MutexGuard<WasiState>) {
         let memory = self.memory();
         let state = self.state.lock().unwrap();
         (memory, state)

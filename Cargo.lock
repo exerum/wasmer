@@ -3094,6 +3094,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "wasmer-wasi-experimental-network"
+version = "0.0.1"
+dependencies = [
+ "libc",
+ "wasmer",
+ "wasmer-wasi",
+ "wasmer-wasi-types",
+]
+
+[[package]]
 name = "wasmer-wasi-types"
 version = "2.0.0"
 dependencies = [
