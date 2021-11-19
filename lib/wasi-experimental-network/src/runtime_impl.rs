@@ -12,6 +12,7 @@ use wasmer_wasi::{
     ptr::{Array, WasmPtr},
     WasiEnv,
 };
+use crate::deref::{my_deref_array, my_deref_buffer};
 
 trait TryFrom<T>: Sized {
     type Error;
@@ -392,8 +393,7 @@ fn socket_send(
         .iter()
         .map(|iov_cell| {
             let iov_inner = iov_cell.get();
-            let bytes: &[Cell<u8>] =
-                WasmPtr::<u8, Array>::new(iov_inner.buf).deref(memory, 0, iov_inner.buf_len)?;
+            let bytes = my_deref_buffer(memory,iov_inner.buf, iov_inner.buf_len)?;
             let bytes: &[u8] = unsafe { mem::transmute(bytes) };
 
             Ok(io::IoSlice::new(bytes))
@@ -423,10 +423,9 @@ fn socket_recv(
 
     for iov_cell in wasi_try!(iov.deref(memory, 0, iov_size)).iter() {
         let iov_inner = iov_cell.get();
-        let bytes: &[Cell<u8>] =
-            wasi_try!(WasmPtr::<u8, Array>::new(iov_inner.buf).deref(memory, 0, iov_inner.buf_len));
+        let bytes = wasi_try!(my_deref_buffer(memory, iov_inner.buf, iov_inner.buf_len ));
         let bytes: &[mem::MaybeUninit<u8>] = unsafe {
-            &*(bytes as *const [Cell<u8>] as *const [u8] as *const [mem::MaybeUninit<u8>])
+            &*(bytes as *const [u8] as *const [mem::MaybeUninit<u8>])
         };
 
         slices.push(bytes);
@@ -592,11 +591,9 @@ fn poller_wait(
         panic!("`poller_wait` has too much events, cannot store them the given `events` array");
     }
 
-    let events_out: &[Cell<__wasi_poll_event_t>] =
-        wasi_try!(events_out.deref(memory, 0, number_of_events.try_into().unwrap()));
-
-    for (event_out, event) in events_out.iter().zip(events) {
-        event_out.set(event);
+    let array = wasi_try!(my_deref_array::<__wasi_poll_event_t>(memory, events_out.offset(), events_size));
+    for (event_out, event) in array.iter_mut().zip(events) {
+        *event_out = event;
     }
 
     let events_size_out_cell = wasi_try!(events_size_out.deref(memory));
