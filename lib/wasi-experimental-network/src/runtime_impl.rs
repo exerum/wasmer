@@ -7,6 +7,10 @@ use std::io;
 use std::mem;
 use std::net;
 use std::sync::{Arc, RwLock};
+use std::io::Write;
+use socket::{Socket, SockAddr, Domain, Type};
+use std::net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV4};
+use std::os::unix::io::{AsRawFd, FromRawFd, IntoRawFd};
 use wasmer::{Exports, Function, LazyInit, Memory, Store, WasmerEnv};
 use wasmer_wasi::{
     ptr::{Array, WasmPtr},
@@ -475,6 +479,186 @@ fn socket_close(fd: __wasi_fd_t) -> __wasi_errno_t {
     __WASI_ESUCCESS
 }
 
+pub fn wasi_new_v4_socket(env: &WasiNetworkEnv, fd_out: WasmPtr<__wasi_fd_t>) -> __wasi_errno_t {
+    let memory = env.memory();
+    let socket = Socket::new(Domain::IPV4, Type::STREAM, None);
+    let socket = match socket {
+        Ok(s) => s,
+        Err(err) => {
+            return err.raw_os_error().unwrap_or(__WASI_EFAULT as i32) as __wasi_errno_t;
+        }
+    };
+    // If nonblocking is set to true, the connect will return an error 115,
+    // Which means connection is in progress.
+    match socket.set_nonblocking(true) {
+        Ok(_) => {},
+        Err(err) => {
+            std::mem::forget(socket);
+            return err.raw_os_error().unwrap_or(__WASI_EFAULT as i32) as __wasi_errno_t;
+        }
+    }
+    let fd = socket.as_raw_fd() as u32;
+    std::mem::forget(socket);
+    let fd_out_cell = wasi_try!(fd_out.deref(memory));
+    fd_out_cell.set(fd);
+    
+    __WASI_ESUCCESS
+}
+
+pub fn wasi_connect_socket(
+    env: &WasiNetworkEnv,
+    sock: u32,
+    sockaddr: WasmPtr<__wasi_socket_address_t>,
+) -> __wasi_errno_t {
+    let memory = env.memory();
+    let sockaddr = wasi_try!(sockaddr.deref(memory)).get();
+    let socket = unsafe { Socket::from_raw_fd(sock as i32) };
+    let ip = unsafe { sockaddr.v4.address };
+    // TODO: support ipv6
+    let addr = SocketAddr::V4(SocketAddrV4::new(
+        Ipv4Addr::new(ip[0], ip[1], ip[2], ip[3]),
+        unsafe { sockaddr.v4.port },
+    ));
+    match socket.connect(&SockAddr::from(addr)) {
+        Ok(_) => {
+            std::mem::forget(socket);
+            __WASI_ESUCCESS
+        }
+        Err(err) => {
+            std::mem::forget(socket);
+            if let Some(errno) = err.raw_os_error() {
+                // Operation pending
+                if errno == 115 {
+                    return __WASI_ESUCCESS;
+                }
+            }
+            err.raw_os_error().unwrap_or(__WASI_EFAULT as i32) as u16
+        }
+    }
+}
+
+pub fn wasi_socket_ttl(env: &WasiNetworkEnv, fd: __wasi_fd_t, ttl_ptr: WasmPtr<u32>) -> __wasi_errno_t {
+    let memory = env.memory();
+    let wasm_ttl = match ttl_ptr.deref(memory) {
+        Ok(dereferenced) => dereferenced,
+        Err(err) => return err,
+    };
+    let socket = unsafe { Socket::from_raw_fd(fd as i32) };
+    let ttl = socket.ttl();
+    std::mem::forget(socket);
+    match ttl {
+        Ok(ttl_value) => {
+            wasm_ttl.set(ttl_value);
+            __WASI_ESUCCESS
+        }
+        Err(error) => error.raw_os_error().unwrap_or(__WASI_EFAULT as i32) as __wasi_errno_t
+    }
+}
+
+pub fn wasi_socket_set_ttl(_env: &WasiNetworkEnv, fd: __wasi_fd_t, ttl: u32) -> __wasi_errno_t {
+    let socket = unsafe { Socket::from_raw_fd(fd as i32) };
+    let res = socket.set_ttl(ttl);
+    std::mem::forget(socket);
+    match res {
+        Ok(_) => __WASI_ESUCCESS,
+        Err(error) => error.raw_os_error().unwrap_or(__WASI_EFAULT as i32) as __wasi_errno_t,
+    }
+}
+
+pub fn wasi_socket_nodelay(env: &WasiNetworkEnv, fd: __wasi_fd_t, nodelay: WasmPtr<u32>) -> __wasi_errno_t {
+    let mut memory = env.memory();
+    let mut wasm_nodelay = match nodelay.deref(memory) {
+        Ok(d) => d,
+        Err(err) => return err,
+    };
+    let socket = unsafe { Socket::from_raw_fd(fd as i32) };
+    let nodelay = socket.nodelay();
+    std::mem::forget(socket);
+    match nodelay {
+        Ok(nodelay_value) => {
+            if nodelay_value {
+                wasm_nodelay.set(1);
+            } else {
+                wasm_nodelay.set(0);
+            }
+            __WASI_ESUCCESS
+        }
+        Err(error) => error.raw_os_error().unwrap_or(__WASI_EFAULT as i32) as __wasi_errno_t,
+    }
+}
+
+pub fn wasi_socket_set_nodelay(_env: &WasiNetworkEnv, fd: __wasi_fd_t, nodelay: u32) -> __wasi_errno_t {
+    let socket = unsafe { Socket::from_raw_fd(fd as i32) };
+    let res = socket.set_nodelay(nodelay != 0);
+    std::mem::forget(socket);
+    match res {
+        Ok(_) => __WASI_ESUCCESS,
+        Err(error) => error.raw_os_error().unwrap_or(__WASI_EFAULT as i32) as __wasi_errno_t,
+    }
+}
+
+pub fn wasi_socket_flush(_env: &WasiNetworkEnv, fd: __wasi_fd_t) -> __wasi_errno_t {
+    let mut socket = unsafe { Socket::from_raw_fd(fd as i32) };
+    let res = socket.flush();
+    std::mem::forget(socket);
+    let error = match res {
+        Ok(()) => __WASI_ESUCCESS,
+        Err(err) => err.raw_os_error().unwrap_or(__WASI_EFAULT as i32) as __wasi_errno_t,
+    };
+    error
+}
+
+pub fn wasi_socket_take_error(env: &WasiNetworkEnv, fd: __wasi_fd_t, socket_error: WasmPtr<u16>) -> __wasi_errno_t {
+    let memory = env.memory();
+    let wasm_socket_error = wasi_try!(socket_error.deref(memory));
+    wasm_socket_error.set(__WASI_ESUCCESS);
+    let socket = unsafe { Socket::from_raw_fd(fd as i32) };
+    let res = socket.take_error();
+    std::mem::forget(socket);
+    match res {
+        Ok(Some(err)) => {
+            wasm_socket_error.set(err.raw_os_error().unwrap_or(__WASI_EFAULT as i32) as __wasi_errno_t);
+            __WASI_ESUCCESS
+        }
+        Ok(None) => __WASI_ESUCCESS,
+        Err(err) => err.raw_os_error().unwrap_or(__WASI_EFAULT as i32) as __wasi_errno_t,
+    }
+}
+
+// TODO: map os descriptors to virtual descriptors for ALL wasi_ functions
+pub fn wasi_eventfd() -> __wasi_fd_t {
+    (unsafe { libc::eventfd(0, libc::EFD_CLOEXEC | libc::EFD_NONBLOCK) }) as u32
+}
+
+pub fn wasi_eventfd_write1(fd: __wasi_fd_t) -> __wasi_errno_t {
+    use std::io::Write;
+    let buf: [u8; 8] = 1u64.to_ne_bytes();
+    let mut f = unsafe { std::fs::File::from_raw_fd(fd as i32) };
+    let res = match f.write(&buf) {
+        Ok(_) => 0,
+        Err(ref err) if err.kind() == std::io::ErrorKind::WouldBlock => 1,
+        Err(err) => {
+            err.raw_os_error().unwrap_or(3) as __wasi_errno_t
+        }
+    };
+    f.into_raw_fd();
+    res
+}
+
+/// Returns 0, if no errors, 1 for WouldBlock and other values for the rest of the errors.
+pub fn wasi_eventfd_read(fd: __wasi_fd_t) -> __wasi_errno_t {
+    use std::io::Read;
+    let mut buf: [u8; 8] = 0u64.to_ne_bytes();
+    let mut f = unsafe { std::fs::File::from_raw_fd(fd as i32) };
+    let res = match f.read(&mut buf) {
+        Ok(_) => 0,
+        Err(ref err) if err.kind() == std::io::ErrorKind::WouldBlock => 1,
+        Err(err) => err.raw_os_error().unwrap_or(3) as __wasi_errno_t,
+    };
+    f.into_raw_fd();
+    res
+}
+
 struct PollingSource(__wasi_fd_t);
 
 #[cfg(target_family = "unix")]
@@ -674,6 +858,47 @@ pub fn get_namespace(store: &Store, wasi_env: &WasiEnv) -> (&'static str, Export
     wasi_network_imports.insert(
         "poller_wait",
         Function::new_native_with_env(&store, wasi_env.clone(), poller_wait),
+    );
+    wasi_network_imports.insert(
+        "wasi_connect_socket",
+        Function::new_native_with_env(&store, wasi_env.clone(), wasi_connect_socket),
+    );
+    wasi_network_imports.insert("wasi_eventfd", Function::new_native(&store, wasi_eventfd));
+    wasi_network_imports.insert(
+        "wasi_eventfd_read",
+        Function::new_native(&store, wasi_eventfd_read),
+    );
+    wasi_network_imports.insert(
+        "wasi_eventfd_write1",
+        Function::new_native(&store, wasi_eventfd_write1),
+    );
+    wasi_network_imports.insert(
+        "wasi_new_v4_socket",
+        Function::new_native_with_env(&store, wasi_env.clone(), wasi_new_v4_socket),
+    );
+    wasi_network_imports.insert(
+        "wasi_socket_ttl",
+        Function::new_native_with_env(&store, wasi_env.clone(), wasi_socket_ttl),
+    );
+    wasi_network_imports.insert(
+        "wasi_socket_set_ttl",
+        Function::new_native_with_env(&store, wasi_env.clone(), wasi_socket_set_ttl),
+    );
+    wasi_network_imports.insert(
+        "wasi_socket_nodelay",
+        Function::new_native_with_env(&store, wasi_env.clone(), wasi_socket_nodelay),
+    );
+    wasi_network_imports.insert(
+        "wasi_socket_set_nodelay",
+        Function::new_native_with_env(&store, wasi_env.clone(), wasi_socket_set_nodelay),
+    );
+    wasi_network_imports.insert(
+        "wasi_socket_flush",
+        Function::new_native_with_env(&store, wasi_env.clone(), wasi_socket_flush),
+    );
+    wasi_network_imports.insert(
+        "wasi_socket_take_error",
+        Function::new_native_with_env(&store, wasi_env.clone(), wasi_socket_take_error),
     );
 
     ("wasi_experimental_network_unstable", wasi_network_imports)
