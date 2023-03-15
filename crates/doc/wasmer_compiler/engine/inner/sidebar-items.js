@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Engine","A WebAssembly `Universal` Engine."],["EngineId","A unique identifier for an Engine."],["EngineInner","The inner contents of `Engine`"]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["is_wasm","Check if the provided bytes are wasm-like"]]};

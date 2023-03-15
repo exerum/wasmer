@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Compiler",""],["Engine",""]],"fn":[["run_code",""]]});
+window.SIDEBAR_ITEMS = {"enum":[["Compiler",""]],"fn":[["run_code",""]]};

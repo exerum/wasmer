@@ -1,102 +1,104 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib&#x2F;c-api&#x2F;src&#x2F;wasm_c_api&#x2F;module.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>module.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="https:&#x2F;&#x2F;wasmer.io&#x2F;images&#x2F;icons&#x2F;favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../wasmer_c_api/index.html'><div class='logo-container rust-logo'><img src='https:&#x2F;&#x2F;github.com&#x2F;wasmerio.png?size=200' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
-<span id="2">  2</span>
-<span id="3">  3</span>
-<span id="4">  4</span>
-<span id="5">  5</span>
-<span id="6">  6</span>
-<span id="7">  7</span>
-<span id="8">  8</span>
-<span id="9">  9</span>
-<span id="10"> 10</span>
-<span id="11"> 11</span>
-<span id="12"> 12</span>
-<span id="13"> 13</span>
-<span id="14"> 14</span>
-<span id="15"> 15</span>
-<span id="16"> 16</span>
-<span id="17"> 17</span>
-<span id="18"> 18</span>
-<span id="19"> 19</span>
-<span id="20"> 20</span>
-<span id="21"> 21</span>
-<span id="22"> 22</span>
-<span id="23"> 23</span>
-<span id="24"> 24</span>
-<span id="25"> 25</span>
-<span id="26"> 26</span>
-<span id="27"> 27</span>
-<span id="28"> 28</span>
-<span id="29"> 29</span>
-<span id="30"> 30</span>
-<span id="31"> 31</span>
-<span id="32"> 32</span>
-<span id="33"> 33</span>
-<span id="34"> 34</span>
-<span id="35"> 35</span>
-<span id="36"> 36</span>
-<span id="37"> 37</span>
-<span id="38"> 38</span>
-<span id="39"> 39</span>
-<span id="40"> 40</span>
-<span id="41"> 41</span>
-<span id="42"> 42</span>
-<span id="43"> 43</span>
-<span id="44"> 44</span>
-<span id="45"> 45</span>
-<span id="46"> 46</span>
-<span id="47"> 47</span>
-<span id="48"> 48</span>
-<span id="49"> 49</span>
-<span id="50"> 50</span>
-<span id="51"> 51</span>
-<span id="52"> 52</span>
-<span id="53"> 53</span>
-<span id="54"> 54</span>
-<span id="55"> 55</span>
-<span id="56"> 56</span>
-<span id="57"> 57</span>
-<span id="58"> 58</span>
-<span id="59"> 59</span>
-<span id="60"> 60</span>
-<span id="61"> 61</span>
-<span id="62"> 62</span>
-<span id="63"> 63</span>
-<span id="64"> 64</span>
-<span id="65"> 65</span>
-<span id="66"> 66</span>
-<span id="67"> 67</span>
-<span id="68"> 68</span>
-<span id="69"> 69</span>
-<span id="70"> 70</span>
-<span id="71"> 71</span>
-<span id="72"> 72</span>
-<span id="73"> 73</span>
-<span id="74"> 74</span>
-<span id="75"> 75</span>
-<span id="76"> 76</span>
-<span id="77"> 77</span>
-<span id="78"> 78</span>
-<span id="79"> 79</span>
-<span id="80"> 80</span>
-<span id="81"> 81</span>
-<span id="82"> 82</span>
-<span id="83"> 83</span>
-<span id="84"> 84</span>
-<span id="85"> 85</span>
-<span id="86"> 86</span>
-<span id="87"> 87</span>
-<span id="88"> 88</span>
-<span id="89"> 89</span>
-<span id="90"> 90</span>
-<span id="91"> 91</span>
-<span id="92"> 92</span>
-<span id="93"> 93</span>
-<span id="94"> 94</span>
-<span id="95"> 95</span>
-<span id="96"> 96</span>
-<span id="97"> 97</span>
-<span id="98"> 98</span>
-<span id="99"> 99</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/c-api/src/wasm_c_api/module.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>module.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://wasmer.io/images/icons/favicon-32x32.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../wasmer_c_api/index.html"><div class="logo-container"><img src="https://github.com/wasmerio.png?size=200" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../wasmer_c_api/index.html"><div class="logo-container">
+                    <img src="https://github.com/wasmerio.png?size=200" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../wasmer_c_api/index.html">
+                        <img src="https://github.com/wasmerio.png?size=200" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
 <span id="100">100</span>
 <span id="101">101</span>
 <span id="102">102</span>
@@ -861,23 +863,16 @@
 <span id="861">861</span>
 <span id="862">862</span>
 <span id="863">863</span>
-<span id="864">864</span>
-<span id="865">865</span>
-<span id="866">866</span>
-<span id="867">867</span>
-<span id="868">868</span>
-<span id="869">869</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">super</span>::store::wasm_store_t</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::types</span>::{<span class="ident">wasm_byte_vec_t</span>, <span class="ident">wasm_exporttype_vec_t</span>, <span class="ident">wasm_importtype_vec_t</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::update_last_error</span>;
 <span class="kw">use</span> <span class="ident">std::ptr::NonNull</span>;
-<span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
 <span class="kw">use</span> <span class="ident">wasmer_api::Module</span>;
 
 <span class="doccomment">/// Opaque type representing a WebAssembly module.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_camel_case_types</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">wasm_module_t</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Module</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">inner</span>: <span class="ident">Module</span>,
 }
 
 <span class="doccomment">/// A WebAssembly module contains stateless WebAssembly code that has</span>
@@ -896,17 +891,15 @@
 <span class="doccomment">/// See the module&#39;s documentation.</span>
 <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
 <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">wasm_module_new</span>(
-    <span class="ident">store</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">wasm_store_t</span><span class="op">&gt;</span>,
+    <span class="ident">store</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">wasm_store_t</span><span class="op">&gt;</span>,
     <span class="ident">bytes</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">wasm_byte_vec_t</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">wasm_module_t</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">store</span> <span class="op">=</span> <span class="ident">store</span><span class="question-mark">?</span>;
+) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">wasm_module_t</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">store</span> <span class="op">=</span> <span class="ident">store</span><span class="question-mark">?</span>.<span class="ident">inner</span>.<span class="ident">store_mut</span>();
     <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">bytes</span><span class="question-mark">?</span>;
 
-    <span class="kw">let</span> <span class="ident">module</span> <span class="op">=</span> <span class="macro">c_try!</span>(<span class="ident">Module::from_binary</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>.<span class="ident">inner</span>, <span class="ident">bytes</span>.<span class="ident">as_slice</span>()));
+    <span class="kw">let</span> <span class="ident">module</span> <span class="op">=</span> <span class="macro">c_try!</span>(<span class="ident">Module::from_binary</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">bytes</span>.<span class="ident">as_slice</span>()));
 
-    <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">wasm_module_t</span> {
-        <span class="ident">inner</span>: <span class="ident">Arc::new</span>(<span class="ident">module</span>),
-    }))
+    <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">wasm_module_t</span> { <span class="ident">inner</span>: <span class="ident">module</span> }))
 }
 
 <span class="doccomment">/// Deletes a WebAssembly module.</span>
@@ -927,7 +920,7 @@
 <span class="doccomment">/// # Example</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// # use inline_c::assert_c;</span>
+<span class="doccomment">/// # use wasmer_inline_c::assert_c;</span>
 <span class="doccomment">/// # fn main() {</span>
 <span class="doccomment">/// #    (assert_c! {</span>
 <span class="doccomment">/// # #include &quot;tests/wasmer.h&quot;</span>
@@ -960,25 +953,21 @@
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
 <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">wasm_module_validate</span>(
-    <span class="ident">store</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">wasm_store_t</span><span class="op">&gt;</span>,
+    <span class="ident">store</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">wasm_store_t</span><span class="op">&gt;</span>,
     <span class="ident">bytes</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">wasm_byte_vec_t</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+) -&gt; <span class="ident">bool</span> {
     <span class="kw">let</span> <span class="ident">store</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">store</span> {
-        <span class="prelude-val">Some</span>(<span class="ident">store</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">store</span>,
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="bool-val">false</span>,
+        <span class="prelude-val">Some</span>(<span class="ident">store</span>) =&gt; <span class="ident">store</span>.<span class="ident">inner</span>.<span class="ident">store_mut</span>(),
+        <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="bool-val">false</span>,
     };
     <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">bytes</span> {
-        <span class="prelude-val">Some</span>(<span class="ident">bytes</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">bytes</span>,
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="bool-val">false</span>,
+        <span class="prelude-val">Some</span>(<span class="ident">bytes</span>) =&gt; <span class="ident">bytes</span>,
+        <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="bool-val">false</span>,
     };
 
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>) <span class="op">=</span> <span class="ident">Module::validate</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>.<span class="ident">inner</span>, <span class="ident">bytes</span>.<span class="ident">as_slice</span>()) {
-        <span class="ident">update_last_error</span>(<span class="ident">error</span>);
-
-        <span class="bool-val">false</span>
-    } <span class="kw">else</span> {
-        <span class="bool-val">true</span>
-    }
+    <span class="ident">Module::validate</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>, <span class="ident">bytes</span>.<span class="ident">as_slice</span>())
+        .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="bool-val">true</span>)
+        .<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
 }
 
 <span class="doccomment">/// Returns an array of the exported types in the module.</span>
@@ -989,7 +978,7 @@
 <span class="doccomment">/// # Example</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// # use inline_c::assert_c;</span>
+<span class="doccomment">/// # use wasmer_inline_c::assert_c;</span>
 <span class="doccomment">/// # fn main() {</span>
 <span class="doccomment">/// #    (assert_c! {</span>
 <span class="doccomment">/// # #include &quot;tests/wasmer.h&quot;</span>
@@ -1093,7 +1082,7 @@
 <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">wasm_module_exports</span>(
     <span class="ident">module</span>: <span class="kw-2">&amp;</span><span class="ident">wasm_module_t</span>,
     <span class="comment">// own</span>
-    <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">wasm_exporttype_vec_t</span>,
+    <span class="ident">out</span>: <span class="kw-2">&amp;mut</span> <span class="ident">wasm_exporttype_vec_t</span>,
 ) {
     <span class="kw">let</span> <span class="ident">exports</span> <span class="op">=</span> <span class="ident">module</span>
         .<span class="ident">inner</span>
@@ -1112,7 +1101,7 @@
 <span class="doccomment">/// # Example</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// # use inline_c::assert_c;</span>
+<span class="doccomment">/// # use wasmer_inline_c::assert_c;</span>
 <span class="doccomment">/// # fn main() {</span>
 <span class="doccomment">/// #    (assert_c! {</span>
 <span class="doccomment">/// # #include &quot;tests/wasmer.h&quot;</span>
@@ -1233,7 +1222,7 @@
 <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">wasm_module_imports</span>(
     <span class="ident">module</span>: <span class="kw-2">&amp;</span><span class="ident">wasm_module_t</span>,
     <span class="comment">// own</span>
-    <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">wasm_importtype_vec_t</span>,
+    <span class="ident">out</span>: <span class="kw-2">&amp;mut</span> <span class="ident">wasm_importtype_vec_t</span>,
 ) {
     <span class="kw">let</span> <span class="ident">imports</span> <span class="op">=</span> <span class="ident">module</span>
         .<span class="ident">inner</span>
@@ -1263,7 +1252,7 @@
 <span class="doccomment">/// # Example</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// # use inline_c::assert_c;</span>
+<span class="doccomment">/// # use wasmer_inline_c::assert_c;</span>
 <span class="doccomment">/// # fn main() {</span>
 <span class="doccomment">/// #    (assert_c! {</span>
 <span class="doccomment">/// # #include &quot;tests/wasmer.h&quot;</span>
@@ -1331,15 +1320,13 @@
 <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">wasm_module_deserialize</span>(
     <span class="ident">store</span>: <span class="kw-2">&amp;</span><span class="ident">wasm_store_t</span>,
     <span class="ident">bytes</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">wasm_byte_vec_t</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">wasm_module_t</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">wasm_module_t</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">bytes</span><span class="question-mark">?</span>;
 
-    <span class="kw">let</span> <span class="ident">module</span> <span class="op">=</span> <span class="macro">c_try!</span>(<span class="ident">Module::deserialize</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>.<span class="ident">inner</span>, <span class="ident">bytes</span>.<span class="ident">as_slice</span>()));
+    <span class="kw">let</span> <span class="ident">module</span> <span class="op">=</span> <span class="macro">c_try!</span>(<span class="ident">Module::deserialize</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>.<span class="ident">inner</span>.<span class="ident">store</span>(), <span class="ident">bytes</span>.<span class="ident">as_slice</span>()));
 
     <span class="prelude-val">Some</span>(<span class="ident">NonNull::new_unchecked</span>(<span class="ident">Box::into_raw</span>(<span class="ident">Box::new</span>(
-        <span class="ident">wasm_module_t</span> {
-            <span class="ident">inner</span>: <span class="ident">Arc::new</span>(<span class="ident">module</span>),
-        },
+        <span class="ident">wasm_module_t</span> { <span class="ident">inner</span>: <span class="ident">module</span> },
     ))))
 }
 
@@ -1351,21 +1338,19 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// See [`wasm_module_deserialize`].</span>
 <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">wasm_module_serialize</span>(<span class="ident">module</span>: <span class="kw-2">&amp;</span><span class="ident">wasm_module_t</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">wasm_byte_vec_t</span>) {
-    <span class="kw">let</span> <span class="ident">byte_vec</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">module</span>.<span class="ident">inner</span>.<span class="ident">serialize</span>() {
-        <span class="prelude-val">Ok</span>(<span class="ident">byte_vec</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">byte_vec</span>,
-        <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="ident"><span class="kw">crate</span>::error::update_last_error</span>(<span class="ident">err</span>);
-            <span class="kw">return</span>;
-        }
-    };
-    <span class="ident">out</span>.<span class="ident">set_buffer</span>(<span class="ident">byte_vec</span>);
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">wasm_module_serialize</span>(<span class="ident">module</span>: <span class="kw-2">&amp;</span><span class="ident">wasm_module_t</span>, <span class="ident">out</span>: <span class="kw-2">&amp;mut</span> <span class="ident">wasm_byte_vec_t</span>) {
+    <span class="kw">let</span> <span class="ident">byte_vec</span> <span class="op">=</span> <span class="macro">c_try!</span>(<span class="ident">module</span>.<span class="ident">inner</span>.<span class="ident">serialize</span>(); <span class="ident">otherwise</span> ());
+    <span class="ident">out</span>.<span class="ident">set_buffer</span>(<span class="ident">byte_vec</span>.<span class="ident">to_vec</span>());
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;windows&quot;</span>))]</span>
     <span class="kw">use</span> <span class="ident">inline_c::assert_c</span>;
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;windows&quot;</span>)]</span>
+    <span class="kw">use</span> <span class="ident">wasmer_inline_c::assert_c</span>;
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">coverage</span>, <span class="ident">ignore</span>)]</span>
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_module_validate</span>() {
         (<span class="macro">assert_c!</span> {
@@ -1393,6 +1378,7 @@
         .<span class="ident">success</span>();
     }
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">coverage</span>, <span class="ident">ignore</span>)]</span>
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_module_new</span>() {
         (<span class="macro">assert_c!</span> {
@@ -1422,6 +1408,7 @@
         .<span class="ident">success</span>();
     }
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">coverage</span>, <span class="ident">ignore</span>)]</span>
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_module_exports</span>() {
         (<span class="macro">assert_c!</span> {
@@ -1449,7 +1436,7 @@
                 <span class="ident">wasm_exporttype_vec_t</span> <span class="ident">export_types</span>;
                 <span class="ident">wasm_module_exports</span>(<span class="ident">module</span>, <span class="kw-2">&amp;</span><span class="ident">export_types</span>);
 
-                <span class="ident">assert</span>(<span class="ident">export_types</span>.<span class="ident">size</span> <span class="op">=</span><span class="op">=</span> <span class="number">4</span>);
+                <span class="ident">assert</span>(<span class="ident">export_types</span>.<span class="ident">size</span> <span class="op">==</span> <span class="number">4</span>);
 
                 {
                     <span class="ident">wasm_exporttype_t</span><span class="op">*</span> <span class="ident">export_type</span> <span class="op">=</span> <span class="ident">export_types</span>.<span class="ident">data</span>[<span class="number">0</span>];
@@ -1458,17 +1445,17 @@
                     <span class="ident">wasmer_assert_name</span>(<span class="ident">export_name</span>, <span class="string">&quot;function&quot;</span>);
 
                     <span class="kw">const</span> <span class="ident">wasm_externtype_t</span><span class="op">*</span> <span class="ident">extern_type</span> <span class="op">=</span> <span class="ident">wasm_exporttype_type</span>(<span class="ident">export_type</span>);
-                    <span class="ident">assert</span>(<span class="ident">wasm_externtype_kind</span>(<span class="ident">extern_type</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">WASM_EXTERN_FUNC</span>);
+                    <span class="ident">assert</span>(<span class="ident">wasm_externtype_kind</span>(<span class="ident">extern_type</span>) <span class="op">==</span> <span class="ident">WASM_EXTERN_FUNC</span>);
 
                     <span class="kw">const</span> <span class="ident">wasm_functype_t</span><span class="op">*</span> <span class="ident">func_type</span> <span class="op">=</span> <span class="ident">wasm_externtype_as_functype_const</span>(<span class="ident">extern_type</span>);
 
                     <span class="kw">const</span> <span class="ident">wasm_valtype_vec_t</span><span class="op">*</span> <span class="ident">func_params</span> <span class="op">=</span> <span class="ident">wasm_functype_params</span>(<span class="ident">func_type</span>);
-                    <span class="ident">assert</span>(<span class="ident">func_params</span> <span class="op">&amp;&amp;</span> <span class="ident">func_params</span><span class="op">-</span><span class="op">&gt;</span><span class="ident">size</span> <span class="op">=</span><span class="op">=</span> <span class="number">2</span>);
-                    <span class="ident">assert</span>(<span class="ident">wasm_valtype_kind</span>(<span class="ident">func_params</span><span class="op">-</span><span class="op">&gt;</span><span class="ident">data</span>[<span class="number">0</span>]) <span class="op">=</span><span class="op">=</span> <span class="ident">WASM_I32</span>);
-                    <span class="ident">assert</span>(<span class="ident">wasm_valtype_kind</span>(<span class="ident">func_params</span><span class="op">-</span><span class="op">&gt;</span><span class="ident">data</span>[<span class="number">1</span>]) <span class="op">=</span><span class="op">=</span> <span class="ident">WASM_I64</span>);
+                    <span class="ident">assert</span>(<span class="ident">func_params</span> <span class="op">&amp;&amp;</span> <span class="ident">func_params</span>-&gt;<span class="ident">size</span> <span class="op">==</span> <span class="number">2</span>);
+                    <span class="ident">assert</span>(<span class="ident">wasm_valtype_kind</span>(<span class="ident">func_params</span>-&gt;<span class="ident">data</span>[<span class="number">0</span>]) <span class="op">==</span> <span class="ident">WASM_I32</span>);
+                    <span class="ident">assert</span>(<span class="ident">wasm_valtype_kind</span>(<span class="ident">func_params</span>-&gt;<span class="ident">data</span>[<span class="number">1</span>]) <span class="op">==</span> <span class="ident">WASM_I64</span>);
 
                     <span class="kw">const</span> <span class="ident">wasm_valtype_vec_t</span><span class="op">*</span> <span class="ident">func_results</span> <span class="op">=</span> <span class="ident">wasm_functype_results</span>(<span class="ident">func_type</span>);
-                    <span class="ident">assert</span>(<span class="ident">func_results</span> <span class="op">&amp;&amp;</span> <span class="ident">func_results</span><span class="op">-</span><span class="op">&gt;</span><span class="ident">size</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
+                    <span class="ident">assert</span>(<span class="ident">func_results</span> <span class="op">&amp;&amp;</span> <span class="ident">func_results</span>-&gt;<span class="ident">size</span> <span class="op">==</span> <span class="number">0</span>);
                 }
 
                 {
@@ -1478,11 +1465,11 @@
                     <span class="ident">wasmer_assert_name</span>(<span class="ident">export_name</span>, <span class="string">&quot;global&quot;</span>);
 
                     <span class="kw">const</span> <span class="ident">wasm_externtype_t</span><span class="op">*</span> <span class="ident">extern_type</span> <span class="op">=</span> <span class="ident">wasm_exporttype_type</span>(<span class="ident">export_type</span>);
-                    <span class="ident">assert</span>(<span class="ident">wasm_externtype_kind</span>(<span class="ident">extern_type</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">WASM_EXTERN_GLOBAL</span>);
+                    <span class="ident">assert</span>(<span class="ident">wasm_externtype_kind</span>(<span class="ident">extern_type</span>) <span class="op">==</span> <span class="ident">WASM_EXTERN_GLOBAL</span>);
 
                     <span class="kw">const</span> <span class="ident">wasm_globaltype_t</span><span class="op">*</span> <span class="ident">global_type</span> <span class="op">=</span> <span class="ident">wasm_externtype_as_globaltype_const</span>(<span class="ident">extern_type</span>);
-                    <span class="ident">assert</span>(<span class="ident">wasm_valtype_kind</span>(<span class="ident">wasm_globaltype_content</span>(<span class="ident">global_type</span>)) <span class="op">=</span><span class="op">=</span> <span class="ident">WASM_I32</span>);
-                    <span class="ident">assert</span>(<span class="ident">wasm_globaltype_mutability</span>(<span class="ident">global_type</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">WASM_CONST</span>);
+                    <span class="ident">assert</span>(<span class="ident">wasm_valtype_kind</span>(<span class="ident">wasm_globaltype_content</span>(<span class="ident">global_type</span>)) <span class="op">==</span> <span class="ident">WASM_I32</span>);
+                    <span class="ident">assert</span>(<span class="ident">wasm_globaltype_mutability</span>(<span class="ident">global_type</span>) <span class="op">==</span> <span class="ident">WASM_CONST</span>);
                 }
 
                 {
@@ -1492,14 +1479,14 @@
                     <span class="ident">wasmer_assert_name</span>(<span class="ident">export_name</span>, <span class="string">&quot;table&quot;</span>);
 
                     <span class="kw">const</span> <span class="ident">wasm_externtype_t</span><span class="op">*</span> <span class="ident">extern_type</span> <span class="op">=</span> <span class="ident">wasm_exporttype_type</span>(<span class="ident">export_type</span>);
-                    <span class="ident">assert</span>(<span class="ident">wasm_externtype_kind</span>(<span class="ident">extern_type</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">WASM_EXTERN_TABLE</span>);
+                    <span class="ident">assert</span>(<span class="ident">wasm_externtype_kind</span>(<span class="ident">extern_type</span>) <span class="op">==</span> <span class="ident">WASM_EXTERN_TABLE</span>);
 
                     <span class="kw">const</span> <span class="ident">wasm_tabletype_t</span><span class="op">*</span> <span class="ident">table_type</span> <span class="op">=</span> <span class="ident">wasm_externtype_as_tabletype_const</span>(<span class="ident">extern_type</span>);
-                    <span class="ident">assert</span>(<span class="ident">wasm_valtype_kind</span>(<span class="ident">wasm_tabletype_element</span>(<span class="ident">table_type</span>)) <span class="op">=</span><span class="op">=</span> <span class="ident">WASM_FUNCREF</span>);
+                    <span class="ident">assert</span>(<span class="ident">wasm_valtype_kind</span>(<span class="ident">wasm_tabletype_element</span>(<span class="ident">table_type</span>)) <span class="op">==</span> <span class="ident">WASM_FUNCREF</span>);
 
                     <span class="kw">const</span> <span class="ident">wasm_limits_t</span><span class="op">*</span> <span class="ident">table_limits</span> <span class="op">=</span> <span class="ident">wasm_tabletype_limits</span>(<span class="ident">table_type</span>);
-                    <span class="ident">assert</span>(<span class="ident">table_limits</span><span class="op">-</span><span class="op">&gt;</span><span class="ident">min</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
-                    <span class="ident">assert</span>(<span class="ident">table_limits</span><span class="op">-</span><span class="op">&gt;</span><span class="ident">max</span> <span class="op">=</span><span class="op">=</span> <span class="ident">wasm_limits_max_default</span>);
+                    <span class="ident">assert</span>(<span class="ident">table_limits</span>-&gt;<span class="ident">min</span> <span class="op">==</span> <span class="number">0</span>);
+                    <span class="ident">assert</span>(<span class="ident">table_limits</span>-&gt;<span class="ident">max</span> <span class="op">==</span> <span class="ident">wasm_limits_max_default</span>);
                 }
 
                 {
@@ -1509,12 +1496,12 @@
                     <span class="ident">wasmer_assert_name</span>(<span class="ident">export_name</span>, <span class="string">&quot;memory&quot;</span>);
 
                     <span class="kw">const</span> <span class="ident">wasm_externtype_t</span><span class="op">*</span> <span class="ident">extern_type</span> <span class="op">=</span> <span class="ident">wasm_exporttype_type</span>(<span class="ident">export_type</span>);
-                    <span class="ident">assert</span>(<span class="ident">wasm_externtype_kind</span>(<span class="ident">extern_type</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">WASM_EXTERN_MEMORY</span>);
+                    <span class="ident">assert</span>(<span class="ident">wasm_externtype_kind</span>(<span class="ident">extern_type</span>) <span class="op">==</span> <span class="ident">WASM_EXTERN_MEMORY</span>);
 
                     <span class="kw">const</span> <span class="ident">wasm_memorytype_t</span><span class="op">*</span> <span class="ident">memory_type</span> <span class="op">=</span> <span class="ident">wasm_externtype_as_memorytype_const</span>(<span class="ident">extern_type</span>);
                     <span class="kw">const</span> <span class="ident">wasm_limits_t</span><span class="op">*</span> <span class="ident">memory_limits</span> <span class="op">=</span> <span class="ident">wasm_memorytype_limits</span>(<span class="ident">memory_type</span>);
-                    <span class="ident">assert</span>(<span class="ident">memory_limits</span><span class="op">-</span><span class="op">&gt;</span><span class="ident">min</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span>);
-                    <span class="ident">assert</span>(<span class="ident">memory_limits</span><span class="op">-</span><span class="op">&gt;</span><span class="ident">max</span> <span class="op">=</span><span class="op">=</span> <span class="ident">wasm_limits_max_default</span>);
+                    <span class="ident">assert</span>(<span class="ident">memory_limits</span>-&gt;<span class="ident">min</span> <span class="op">==</span> <span class="number">1</span>);
+                    <span class="ident">assert</span>(<span class="ident">memory_limits</span>-&gt;<span class="ident">max</span> <span class="op">==</span> <span class="ident">wasm_limits_max_default</span>);
                 }
 
                 <span class="ident">wasm_exporttype_vec_delete</span>(<span class="kw-2">&amp;</span><span class="ident">export_types</span>);
@@ -1530,6 +1517,7 @@
         .<span class="ident">success</span>();
     }
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">coverage</span>, <span class="ident">ignore</span>)]</span>
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_module_imports</span>() {
         (<span class="macro">assert_c!</span> {
@@ -1557,7 +1545,7 @@
                 <span class="ident">wasm_importtype_vec_t</span> <span class="ident">import_types</span>;
                 <span class="ident">wasm_module_imports</span>(<span class="ident">module</span>, <span class="kw-2">&amp;</span><span class="ident">import_types</span>);
 
-                <span class="ident">assert</span>(<span class="ident">import_types</span>.<span class="ident">size</span> <span class="op">=</span><span class="op">=</span> <span class="number">4</span>);
+                <span class="ident">assert</span>(<span class="ident">import_types</span>.<span class="ident">size</span> <span class="op">==</span> <span class="number">4</span>);
 
                 {
                     <span class="kw">const</span> <span class="ident">wasm_importtype_t</span><span class="op">*</span> <span class="ident">import_type</span> <span class="op">=</span> <span class="ident">import_types</span>.<span class="ident">data</span>[<span class="number">0</span>];
@@ -1569,15 +1557,15 @@
                     <span class="ident">wasmer_assert_name</span>(<span class="ident">import_name</span>, <span class="string">&quot;function&quot;</span>);
 
                     <span class="kw">const</span> <span class="ident">wasm_externtype_t</span><span class="op">*</span> <span class="ident">extern_type</span> <span class="op">=</span> <span class="ident">wasm_importtype_type</span>(<span class="ident">import_type</span>);
-                    <span class="ident">assert</span>(<span class="ident">wasm_externtype_kind</span>(<span class="ident">extern_type</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">WASM_EXTERN_FUNC</span>);
+                    <span class="ident">assert</span>(<span class="ident">wasm_externtype_kind</span>(<span class="ident">extern_type</span>) <span class="op">==</span> <span class="ident">WASM_EXTERN_FUNC</span>);
 
                     <span class="kw">const</span> <span class="ident">wasm_functype_t</span><span class="op">*</span> <span class="ident">func_type</span> <span class="op">=</span> <span class="ident">wasm_externtype_as_functype_const</span>(<span class="ident">extern_type</span>);
 
                     <span class="kw">const</span> <span class="ident">wasm_valtype_vec_t</span><span class="op">*</span> <span class="ident">func_params</span> <span class="op">=</span> <span class="ident">wasm_functype_params</span>(<span class="ident">func_type</span>);
-                    <span class="ident">assert</span>(<span class="ident">func_params</span> <span class="op">&amp;&amp;</span> <span class="ident">func_params</span><span class="op">-</span><span class="op">&gt;</span><span class="ident">size</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
+                    <span class="ident">assert</span>(<span class="ident">func_params</span> <span class="op">&amp;&amp;</span> <span class="ident">func_params</span>-&gt;<span class="ident">size</span> <span class="op">==</span> <span class="number">0</span>);
 
                     <span class="kw">const</span> <span class="ident">wasm_valtype_vec_t</span><span class="op">*</span> <span class="ident">func_results</span> <span class="op">=</span> <span class="ident">wasm_functype_results</span>(<span class="ident">func_type</span>);
-                    <span class="ident">assert</span>(<span class="ident">func_results</span> <span class="op">&amp;&amp;</span> <span class="ident">func_results</span><span class="op">-</span><span class="op">&gt;</span><span class="ident">size</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
+                    <span class="ident">assert</span>(<span class="ident">func_results</span> <span class="op">&amp;&amp;</span> <span class="ident">func_results</span>-&gt;<span class="ident">size</span> <span class="op">==</span> <span class="number">0</span>);
                 }
 
                 {
@@ -1590,11 +1578,11 @@
                     <span class="ident">wasmer_assert_name</span>(<span class="ident">import_name</span>, <span class="string">&quot;global&quot;</span>);
 
                     <span class="kw">const</span> <span class="ident">wasm_externtype_t</span><span class="op">*</span> <span class="ident">extern_type</span> <span class="op">=</span> <span class="ident">wasm_importtype_type</span>(<span class="ident">import_type</span>);
-                    <span class="ident">assert</span>(<span class="ident">wasm_externtype_kind</span>(<span class="ident">extern_type</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">WASM_EXTERN_GLOBAL</span>);
+                    <span class="ident">assert</span>(<span class="ident">wasm_externtype_kind</span>(<span class="ident">extern_type</span>) <span class="op">==</span> <span class="ident">WASM_EXTERN_GLOBAL</span>);
 
                     <span class="kw">const</span> <span class="ident">wasm_globaltype_t</span><span class="op">*</span> <span class="ident">global_type</span> <span class="op">=</span> <span class="ident">wasm_externtype_as_globaltype_const</span>(<span class="ident">extern_type</span>);
-                    <span class="ident">assert</span>(<span class="ident">wasm_valtype_kind</span>(<span class="ident">wasm_globaltype_content</span>(<span class="ident">global_type</span>)) <span class="op">=</span><span class="op">=</span> <span class="ident">WASM_F32</span>);
-                    <span class="ident">assert</span>(<span class="ident">wasm_globaltype_mutability</span>(<span class="ident">global_type</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">WASM_CONST</span>);
+                    <span class="ident">assert</span>(<span class="ident">wasm_valtype_kind</span>(<span class="ident">wasm_globaltype_content</span>(<span class="ident">global_type</span>)) <span class="op">==</span> <span class="ident">WASM_F32</span>);
+                    <span class="ident">assert</span>(<span class="ident">wasm_globaltype_mutability</span>(<span class="ident">global_type</span>) <span class="op">==</span> <span class="ident">WASM_CONST</span>);
                 }
 
                 {
@@ -1607,14 +1595,14 @@
                     <span class="ident">wasmer_assert_name</span>(<span class="ident">import_name</span>, <span class="string">&quot;table&quot;</span>);
 
                     <span class="kw">const</span> <span class="ident">wasm_externtype_t</span><span class="op">*</span> <span class="ident">extern_type</span> <span class="op">=</span> <span class="ident">wasm_importtype_type</span>(<span class="ident">import_type</span>);
-                    <span class="ident">assert</span>(<span class="ident">wasm_externtype_kind</span>(<span class="ident">extern_type</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">WASM_EXTERN_TABLE</span>);
+                    <span class="ident">assert</span>(<span class="ident">wasm_externtype_kind</span>(<span class="ident">extern_type</span>) <span class="op">==</span> <span class="ident">WASM_EXTERN_TABLE</span>);
 
                     <span class="kw">const</span> <span class="ident">wasm_tabletype_t</span><span class="op">*</span> <span class="ident">table_type</span> <span class="op">=</span> <span class="ident">wasm_externtype_as_tabletype_const</span>(<span class="ident">extern_type</span>);
-                    <span class="ident">assert</span>(<span class="ident">wasm_valtype_kind</span>(<span class="ident">wasm_tabletype_element</span>(<span class="ident">table_type</span>)) <span class="op">=</span><span class="op">=</span> <span class="ident">WASM_FUNCREF</span>);
+                    <span class="ident">assert</span>(<span class="ident">wasm_valtype_kind</span>(<span class="ident">wasm_tabletype_element</span>(<span class="ident">table_type</span>)) <span class="op">==</span> <span class="ident">WASM_FUNCREF</span>);
 
                     <span class="kw">const</span> <span class="ident">wasm_limits_t</span><span class="op">*</span> <span class="ident">table_limits</span> <span class="op">=</span> <span class="ident">wasm_tabletype_limits</span>(<span class="ident">table_type</span>);
-                    <span class="ident">assert</span>(<span class="ident">table_limits</span><span class="op">-</span><span class="op">&gt;</span><span class="ident">min</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span>);
-                    <span class="ident">assert</span>(<span class="ident">table_limits</span><span class="op">-</span><span class="op">&gt;</span><span class="ident">max</span> <span class="op">=</span><span class="op">=</span> <span class="number">2</span>);
+                    <span class="ident">assert</span>(<span class="ident">table_limits</span>-&gt;<span class="ident">min</span> <span class="op">==</span> <span class="number">1</span>);
+                    <span class="ident">assert</span>(<span class="ident">table_limits</span>-&gt;<span class="ident">max</span> <span class="op">==</span> <span class="number">2</span>);
                 }
 
                 {
@@ -1627,12 +1615,12 @@
                     <span class="ident">wasmer_assert_name</span>(<span class="ident">import_name</span>, <span class="string">&quot;memory&quot;</span>);
 
                     <span class="kw">const</span> <span class="ident">wasm_externtype_t</span><span class="op">*</span> <span class="ident">extern_type</span> <span class="op">=</span> <span class="ident">wasm_importtype_type</span>(<span class="ident">import_type</span>);
-                    <span class="ident">assert</span>(<span class="ident">wasm_externtype_kind</span>(<span class="ident">extern_type</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">WASM_EXTERN_MEMORY</span>);
+                    <span class="ident">assert</span>(<span class="ident">wasm_externtype_kind</span>(<span class="ident">extern_type</span>) <span class="op">==</span> <span class="ident">WASM_EXTERN_MEMORY</span>);
 
                     <span class="kw">const</span> <span class="ident">wasm_memorytype_t</span><span class="op">*</span> <span class="ident">memory_type</span> <span class="op">=</span> <span class="ident">wasm_externtype_as_memorytype_const</span>(<span class="ident">extern_type</span>);
                     <span class="kw">const</span> <span class="ident">wasm_limits_t</span><span class="op">*</span> <span class="ident">memory_limits</span> <span class="op">=</span> <span class="ident">wasm_memorytype_limits</span>(<span class="ident">memory_type</span>);
-                    <span class="ident">assert</span>(<span class="ident">memory_limits</span><span class="op">-</span><span class="op">&gt;</span><span class="ident">min</span> <span class="op">=</span><span class="op">=</span> <span class="number">3</span>);
-                    <span class="ident">assert</span>(<span class="ident">memory_limits</span><span class="op">-</span><span class="op">&gt;</span><span class="ident">max</span> <span class="op">=</span><span class="op">=</span> <span class="number">4</span>);
+                    <span class="ident">assert</span>(<span class="ident">memory_limits</span>-&gt;<span class="ident">min</span> <span class="op">==</span> <span class="number">3</span>);
+                    <span class="ident">assert</span>(<span class="ident">memory_limits</span>-&gt;<span class="ident">max</span> <span class="op">==</span> <span class="number">4</span>);
                 }
 
                 <span class="ident">wasm_importtype_vec_delete</span>(<span class="kw-2">&amp;</span><span class="ident">import_types</span>);
@@ -1648,6 +1636,7 @@
         .<span class="ident">success</span>();
     }
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">coverage</span>, <span class="ident">ignore</span>)]</span>
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_module_serialize</span>() {
         (<span class="macro">assert_c!</span> {
@@ -1682,6 +1671,7 @@
         .<span class="ident">success</span>();
     }
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">coverage</span>, <span class="ident">ignore</span>)]</span>
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_module_serialize_and_deserialize</span>() {
         (<span class="macro">assert_c!</span> {
@@ -1721,7 +1711,7 @@
                 <span class="ident">wasm_exporttype_vec_t</span> <span class="ident">export_types</span>;
                 <span class="ident">wasm_module_exports</span>(<span class="ident">deserialized_module</span>, <span class="kw-2">&amp;</span><span class="ident">export_types</span>);
 
-                <span class="ident">assert</span>(<span class="ident">export_types</span>.<span class="ident">size</span> <span class="op">=</span><span class="op">=</span> <span class="number">4</span>);
+                <span class="ident">assert</span>(<span class="ident">export_types</span>.<span class="ident">size</span> <span class="op">==</span> <span class="number">4</span>);
 
                 <span class="ident">wasm_exporttype_vec_delete</span>(<span class="kw-2">&amp;</span><span class="ident">export_types</span>);
                 <span class="ident">wasm_module_delete</span>(<span class="ident">deserialized_module</span>);
@@ -1737,6 +1727,4 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="wasmer_c_api" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
-    <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="wasmer_c_api" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>

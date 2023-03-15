@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["__deregister_frame",""],["__register_frame",""]],"struct":[["UnwindRegistry","Represents a registry of function unwind information for System V ABI."]]});

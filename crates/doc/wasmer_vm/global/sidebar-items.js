@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["GlobalError","Error type describing things that can go wrong when operating on Wasm Globals."]],"struct":[["Global","A Global instance"]]});
+window.SIDEBAR_ITEMS = {"struct":[["VMGlobal","A Global instance"]]};

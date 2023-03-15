@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["TaskStatus",""]],"struct":[["OwnedTaskStatus","A handle that allows awaiting the termination of a task, and retrieving its exit code."],["TaskJoinHandle","A handle that allows awaiting the termination of a task, and retrieving its exit code."],["TaskTerminatedError",""]],"trait":[["VirtualTaskHandle",""]]};

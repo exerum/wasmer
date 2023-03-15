@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Memory","A WebAssembly `memory` instance."]]});
+window.SIDEBAR_ITEMS = {"fn":[["volatile_memcpy_read",""],["volatile_memcpy_write",""]],"struct":[["Memory",""],["MemoryBuffer","Underlying buffer for a memory."]]};

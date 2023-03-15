@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["VMFunctionEnvironment","Underlying FunctionEnvironment used by a `VMFunction`."]]};

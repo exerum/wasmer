@@ -1,1 +1,1 @@
-initSidebarItems({"derive":[["WasmerEnv",""]],"fn":[["derive_struct_fields",""],["get_identifier",""],["impl_wasmer_env",""],["impl_wasmer_env_for_struct",""]],"mod":[["parse",""]]});
+window.SIDEBAR_ITEMS = {"derive":[["ValueType",""]],"mod":[["value_type",""]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":[["ARCH_FUNCTION_ALIGNMENT","The optimal alignment for functions."],["DATA_SECTION_ALIGNMENT","The optimal alignment for data."]],"fn":[["round_up",""]],"struct":[["CodeMemory","Memory manager for executable code."]]};

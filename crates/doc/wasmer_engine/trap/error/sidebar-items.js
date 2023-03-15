@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["RuntimeErrorSource","The source of the `RuntimeError`."]],"fn":[["_assert_trap_is_sync_and_send",""]],"struct":[["RuntimeError","A struct representing an aborted instruction execution, with a message indicating the cause."],["RuntimeErrorInner",""]]});

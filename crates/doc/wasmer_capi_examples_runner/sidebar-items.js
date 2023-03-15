@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["find_wasmer_base_dir",""],["make_package",""]],"struct":[["Config",""],["RemoveTestsOnDrop",""]]};

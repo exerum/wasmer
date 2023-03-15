@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":[["CAPI_BASE_TESTS_NOT_WORKING",""]],"fn":[["find_wasmer_base_dir",""]],"struct":[["Config",""],["RemoveTestsOnDrop",""]]};

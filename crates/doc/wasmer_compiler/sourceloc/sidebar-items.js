@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["ArchivedSourceLoc","An archived `SourceLoc`"],["SourceLoc","A source location."],["SourceLocResolver","The resolver for archived `SourceLoc`"]]});
